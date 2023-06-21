@@ -1,27 +1,35 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, Inject, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import {Course} from "../model/course";
 import {FormBuilder, Validators, FormGroup} from "@angular/forms";
 import * as moment from 'moment';
-import {catchError} from 'rxjs/operators';
+import {catchError, tap} from 'rxjs/operators';
 import {throwError} from 'rxjs';
+import { CourseService } from '../services/courses.service';
+import { LoadingService } from '../loading/loading.service';
+import { MessageService } from '../messages/ messages.services';
+import { CourseStore } from '../services/courses.store';
 
 @Component({
     selector: 'course-dialog',
     templateUrl: './course-dialog.component.html',
-    styleUrls: ['./course-dialog.component.css']
+    styleUrls: ['./course-dialog.component.css'],
+    providers: [LoadingService, MessageService],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CourseDialogComponent implements AfterViewInit {
 
     form: FormGroup;
 
     course:Course;
-
+    
     constructor(
         private fb: FormBuilder,
         private dialogRef: MatDialogRef<CourseDialogComponent>,
+        private courseStore: CourseStore,
+        
         @Inject(MAT_DIALOG_DATA) course:Course) {
-
+        
         this.course = course;
 
         this.form = fb.group({
@@ -40,6 +48,8 @@ export class CourseDialogComponent implements AfterViewInit {
     save() {
 
       const changes = this.form.value;
+      this.dialogRef.close(changes)
+      this.courseStore.saveCourse(this.course.id, changes).subscribe()
 
     }
 
